@@ -5,4 +5,6 @@ Scraping of Ruby Mailing Lists
 
 ```bash
 pip install scrapy
+pip install pyasn1-modules
+pip install Twisted==16.4.1
 ```
