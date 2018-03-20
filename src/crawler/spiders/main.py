@@ -35,8 +35,8 @@ class IndexSpider(scrapy.Spider):
         text = response.css('pre').extract_first()
 
         yield {
-            'user': ':'.join(header_parts[1].split(':')[1:]).strip(),
-            'date': ':'.join(header_parts[2].split(':')[1:]).strip(),
-            'subject': ':'.join(header_parts[0].split(':')[1:]).strip(),
+            'user': ':'.join(header_parts[2].split(':')[1:]).strip(),
+            'date': ':'.join(header_parts[3].split(':')[1:]).strip(),
+            'subject': ':'.join(header_parts[1].split(':')[1:]).strip(),
             'text': text
         }
