@@ -16,7 +16,7 @@ def main():
     if os.path.exists(data_folder):
         shutil.move(data_folder, os.path.join(archive_folder, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')))
 
-    process.crawl('main', start_urls=['http://blade.nagaokaut.ac.jp/ruby/ruby-core/index.shtml'])
+    process.crawl('main', start_urls=['http://blade.nagaokaut.ac.jp/ruby/ruby-core/index.shtml', 'http://blade.nagaokaut.ac.jp/ruby/ruby-talk/index.shtml'])
     process.start()
 
 if __name__ == "__main__":
