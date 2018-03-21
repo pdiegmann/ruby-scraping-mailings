@@ -12,11 +12,11 @@ class IndexSpider(scrapy.Spider):
 
     def choose_parser(self, response):
         if response.url.endswith('index.html'):
-            parse_message_groups(self, response)
+            self.parse_message_groups(response)
         elif re.match('^(.*\/[^\/]*\-[^\/]*\.shtml)$') is not None:
-            parse_message_list(self, response)
+            self.parse_message_list(response)
         else:
-            parse_message(self, response)
+            self.parse_message(response)
 
     def parse_message_groups(self, response):
         for cell in response.css('td'):
@@ -32,20 +32,20 @@ class IndexSpider(scrapy.Spider):
                 yield response.follow(urlparse.urljoin(response.url, message_link.css('::attr(href)').extract_first()), self.parse_message)
 
     def parse_message(self, response):
-        cleanr = re.compile('<.*?>')
-
-        header = response.css('div#header').extract_first()
-        header_parts = header.split('<br>')
+        header_raw = response.css('div#header').extract_first()
+        header = self.parse_header(header_raw)
         text = response.css('pre').extract_first()
 
-        subject = re.sub(cleanr, '', ':'.join(header_parts[1].split(':')[1:]).strip())
-        user_raw = ':'.join(header_parts[2].split(':')[1:])
-        user = user_raw.split('&lt;')[-1].split('&gt;')[0].strip()
-        name = re.sub(cleanr, '', user_raw.split('&lt;')[0].strip())
-        date_raw = re.sub(cleanr, '', ':'.join(header_parts[3].split(':')[1:]).strip())
+        subject = self.remove_html(header['Subject'])
+        user_raw = header['From']
+        user = self.remove_html(user_raw.split('&lt;')[-1].split('&gt;')[0]).strip()
+        name = self.remove_html(user_raw.split('&lt;')[0])
+        date_raw = self.remove_html(header['Date'])
         date = parser.parse(date_raw).strftime('%Y-%m-%d %H:%M:%S %z')
         id = response.url.split('/')[-1]
         channel = response.url.split('/')[-2]
+        references = self.remove_html(header['References']).split(' ')
+        reply_to = self.remove_html(header['In-reply-to'])
 
         yield {
             'id': id,
@@ -53,7 +53,21 @@ class IndexSpider(scrapy.Spider):
             'user': user,
             'name': name,
             'date': date,
+            'references': references,
+            'reply-to': reply_to,
             'subject': subject,
             'text': text,
             'url': response.url
         }
+
+    def remove_html(self, string):
+        return re.sub(re.compile('<.*?>'), '', string).strip()
+
+    def parse_header(self, header):
+        rows = header.split('<br>')
+        dict = { 'Subject': '', 'From': '', 'Date': '', 'References': '', 'In-reply-to': '' }
+        for row in rows:
+            key = row.split(':')[0].strip()
+            value = ':'.join(row.split(':')[1:]).strip()
+            dict[key] = value
+        return dict
