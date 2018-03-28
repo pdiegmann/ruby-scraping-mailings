@@ -17,6 +17,8 @@ NEWSPIDER_MODULE = 'crawler.spiders'
 FEED_URI = '../data/%(name)s/result.jsonl'
 FEED_FORMAT = 'jsonlines'
 
+LOG_LEVEL = 'INFO'
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'crawler (+http://www.yourdomain.com)'
 

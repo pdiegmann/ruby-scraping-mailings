@@ -16,16 +16,18 @@ class RubyLangMainSpider(scrapy.Spider):
             thread_id = thread_link.split('/')[-1]
             yield response.follow(('https://groups.google.com/forum/?_escaped_fragment_=topic/' + forum_name + '/' + thread_id), self.parse_thread)
 
-        last_link = response.css('body > a[href]')[-1]
+        links = response.css('body > a[href]')
+        if links is None or len(links) <= 0: return
+
+        last_link = links[-1]
         if last_link.css('a').extract_first().endswith(u'\u00BB</a>'):
-            print last_link.css('::attr(href)').extract_first()
             yield response.follow(last_link.css('::attr(href)').extract_first(), self.parse_thread_list)
 
     def parse_thread(self, response):
-        for message_raw in response.css('table > tr'):
+        for message_raw in response.css('body > table > tr'):
             message_link_parts = message_raw.css('td.subject > a::attr(href)').extract_first().split('/')
             subject = message_raw.css('td.subject > a::text').extract_first()
-            user = message_raw.css('td.author::text').extract_first()
+            user = self.remove_html(message_raw.css('td.author').extract_first())
             date = message_raw.css('td.lastPostDate::text').extract_first()
             text = message_raw.css('td.snippet > div > div').extract_first()
             forum = message_link_parts[-3]
